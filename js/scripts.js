@@ -357,7 +357,7 @@ function buildChart(data){
       data: peopleInvolvedBROOKLYN,
       color: selectedBorough=="Brooklyn" ? highlightColor : "#D5FFDF"
     }, {
-      name: 'Quuens',
+      name: 'Queens',
       data: peopleInvolvedQUEENS,
       color: selectedBorough=="Queens" ? highlightColor : "#FFD5D8"
     }, {
