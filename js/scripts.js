@@ -1,6 +1,5 @@
 var selectedBorough =  $("#dropdown1 option:selected").val();
 var selectedTime = $("#dropdown2 option:selected").val();
-console.log(selectedBorough);
 var highlightColor = "#D4000D";
 var startPoint = -0.5;
 var endPoint = 0.5;
@@ -54,15 +53,7 @@ function changeTime() {
 
 console.log ('DOM loaded');
 
-// Set up any variables needed
-var injuries = [];
-var deaths = [];
-var time = [];
-var peopleInvolved = [];
-var carsInvolved = [];
-var totalInvolved = [];
-var carData = [];
-var pedData = [];
+// Set up variables needed for the chart
 var peopleInvolvedBRONX = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 var peopleInvolvedMANHATTAN = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 var peopleInvolvedQUEENS = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -87,34 +78,13 @@ $.ajax({
 })
 
 // Function to do logic
-// Set up a for loop to loop through the data
-// Push data to different arrays to prepare for chart
-
+// Set up data needed for building the chart
 function doLogic(data){
-  for(i=0;i<data.results.length;i++){
-    injuries.push(parseInt(data.results[i].number_of_persons_injured));
-    deaths.push(parseInt(data.results[i].number_of_persons_killed));
-    peopleInvolved.push(parseInt(data.results[i].number_of_persons_injured+data.results[i].number_of_persons_killed));
-    time.push(data.results[i].time);
-    var cars = 0;
-    for (j=1;j<6;j++){
-      if (data.results[i]["vehicle_type_code_"+j]!=""){
-        cars+=1;
-      }
-    }
-    carsInvolved.push(cars);
-    totalInvolved.push(cars + parseInt(data.results[i].number_of_persons_injured+data.results[i].number_of_persons_killed))
-  }
+
   for(var m = 0; m < data.results.length; m++) {
-    var timeArray = time[m].split(":");
+    var timeArray = data.results[m].time.split(":");
     var hour = parseInt(timeArray[0]);
     var timeData = Date.UTC(0, 0, 0, parseInt(timeArray[0]), parseInt(timeArray[1]), parseInt(timeArray[2]));
-    // if (parseInt(data.results[m].number_of_pedestrians_injured)+parseInt(data.results[m].number_of_pedestrians_killed)==0){
-    //   carData.push([timeData,((0.5*injuries[m]+0.9*deaths[m]+0.8*carsInvolved[m]+1)/(1+injuries[m]+deaths[m]+peopleInvolved[m]+carsInvolved[m]))*100,totalInvolved[m]]);
-    // }
-    // else{
-    //   pedData.push([timeData,((0.5*injuries[m]+0.9*deaths[m]+0.8*carsInvolved[m]+1)/(1+injuries[m]+deaths[m]+peopleInvolved[m]+carsInvolved[m]))*100,totalInvolved[m]]);
-    // }
     var timeSection = ['12AM', '2AM', '4AM', '6AM', '8AM', '10AM', '12PM', '2PM', '4PM', '6PM', '8PM', '10PM', '12AM'];
 
     if (hour>=23 || hour<1){
@@ -355,7 +325,7 @@ function buildChart(data){
     },
     xAxis: {
       categories: ['12AM', '2AM', '4AM', '6AM', '8AM', '10AM', '12PM', '2PM', '4PM', '6PM', '8PM', '10PM', '12AM'],
-      plotBands: [{ // mark the weekend
+      plotBands: [{ // mark the selected time period
         color: selectedTime=="" ? 'white':'#D46C75',
         from: startPoint,
         to: endPoint
