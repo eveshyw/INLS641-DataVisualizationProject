@@ -326,7 +326,7 @@ function buildChart(data){
       style: {
             fontFamily: 'Open Sans'
         },
-      height:'45%'
+      height:'334px'
     },
     title: {
       text: 'People Involved in Collisions By Borough',
