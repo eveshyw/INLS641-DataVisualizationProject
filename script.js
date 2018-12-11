@@ -33,6 +33,8 @@ function changeBorough() {
     console.log(endPoint)
     renderMap(selectedBorough,startPoint,endPoint);
     changeBoroughForLineChart();
+    renderChart1(selectedBorough,startPoint,endPoint);
+    renderChart2(selectedBorough,startPoint,endPoint);
 }
 
 function changeTime() {
@@ -53,6 +55,8 @@ function changeTime() {
 
     renderMap(selectedBorough,startPoint,endPoint);
     changeTimeForLineChart();
+    renderChart1(selectedBorough,startPoint,endPoint);
+    renderChart2(selectedBorough,startPoint,endPoint);
 }
 
 var map = new L.Map('map');
@@ -140,9 +144,9 @@ function renderMap(_borough="ALL",_startPoint=0.0,_endPoint=12.0){
               intensity = 1 - s;
             }*/
 
-            intensity = Math.random();
+            //intensity = Math.random();
 
-            //location.push(intensity * 1);
+            location.push(1);
             return location; // e.g. [50.5, 30.5, 0.2], // lat, lng, intensity
 
 
@@ -152,3 +156,303 @@ function renderMap(_borough="ALL",_startPoint=0.0,_endPoint=12.0){
         map.addLayer(heat);
     });
 }
+
+function renderChart1(_borough="ALL",_startPoint=0.0,_endPoint=12.0) {
+
+// get the data
+    $.getJSON("GeoObs_1.json", function (data) {
+
+        var filtered_data = data.features.filter(function (d) {
+
+            if (_borough === "ALL") {
+                if (d.properties.time >= (_startPoint*2) && d.properties.time < (_endPoint*2)){
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            }
+            else {
+                return (d.properties.borough === _borough && d.properties.time >= (_startPoint*2) && d.properties.time < (_endPoint*2));
+            }
+        });
+
+        data = d3.nest()
+            .key(function (d) {
+                return d.properties.contributing_factor;
+            })
+            .rollup(function (v) {
+                return v.length;
+            })
+            .entries(filtered_data);
+
+        console.log(JSON.stringify(data));
+
+        var w = 400;
+        var h = 400;
+        var margin = {
+            top: 50,
+            bottom: 100,
+            left: 50,
+            right: 20
+        };
+        var width = w - margin.left - margin.right;
+        var height = h - margin.top - margin.bottom;
+
+
+        //var tooltip = d3.select("body").append("div").attr("class", "toolTip");
+        var tooltip = d3.select("#chart-1").append("div").attr("class", "toolTip");
+
+        var x = d3.scaleBand()
+            .domain(data.map(function (d) {
+                return d.key;
+            }))
+            .range([margin.left, width])
+            .padding(0.1);
+
+        var y = d3.scaleLinear()
+            .domain([0, d3.max(data, function (d) {
+                return d.value;
+            })])
+            .range([height, margin.top])
+
+        var yAxis = d3.axisLeft().scale(y)
+
+
+        d3.select("#causechart").remove();
+
+        //var svg = d3.select("body").append("svg")
+        var svg = d3.select("#chart-1").append("svg")
+            .attr("id", "causechart")
+            .attr("width", w)
+            .attr("height", h);
+        svg.append("g")
+            .attr("class", "axis")
+            .attr("transform", "translate(" + margin.left + ",0)")
+            .call(yAxis);
+        data.sort(function (a, b) {
+            return d3.descending(a.value, b.value)
+        })
+
+        x.domain(data.map(function (d) {
+            return d.key;
+        }));
+
+        svg.selectAll(".bar")
+            .transition()
+            .duration(500)
+            .attr("x", function (d, i) {
+                return x(d.key);
+            })
+
+        svg.selectAll(".val-label")
+            .transition()
+            .duration(500)
+            .attr("x", function (d, i) {
+                return x(d.key) + x.bandwidth() / 2;
+            })
+
+        svg.selectAll(".bar-label")
+            .transition()
+            .duration(500)
+            .attr("transform", function (d, i) {
+                return "translate(" + (x(d.key) + x.bandwidth() / 2 - 8) + "," + (height + 15) + ")" + " rotate(45)"
+            })
+
+
+        // append the rectangles for the bar chart
+        svg.selectAll("rect")
+            .data(data)
+            .enter()
+            .append("rect")
+            .attr("class", "bar")
+            .attr("x", function (d, i) {
+                return x(d.key);
+            })
+            .attr("width", x.bandwidth())
+            .attr("y", height)
+
+            .attr("y", function (d, i) {
+                return y(d.value);
+            })
+            .attr("height", function (d, i) {
+                return height - y(d.value);
+            })
+            .on("mousemove", function (d) {
+                tooltip
+                    .style("left", d3.event.pageX - 500 + "px")
+                    .style("top", d3.event.pageY - 300 + "px")
+                    .style("display", "inline")
+                    .html((d.key) + ": " + (d.value));
+            })
+            .on("mouseout", function (d) {
+                tooltip.style("display", "none");
+            });
+
+
+        // add the x Axis
+        svg.append("g")
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisBottom(x))
+            .selectAll('text')
+            .attr("transform", "rotate(-60)")
+            .attr("dx", "-.8em")
+            .attr("dy", ".25em")
+            .style("text-anchor", "end")
+            .style("font-size", "12px");
+
+        /*// add the y Axis
+        svg.append("g")
+            .call(d3.axisLeft(y));
+      */
+
+    });
+}
+
+renderChart1();
+
+function renderChart2(_borough="ALL",_startPoint=0.0,_endPoint=12.0) {
+
+// get the data
+    $.getJSON("GeoObs_2.json", function (data) {
+
+        var filtered_data = data.features.filter(function (d) {
+
+            if (_borough === "ALL") {
+                if (d.properties.time >= (_startPoint*2) && d.properties.time < (_endPoint*2)){
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            }
+            else {
+                return (d.properties.borough === _borough && d.properties.time >= (_startPoint*2) && d.properties.time < (_endPoint*2));
+            }
+        });
+
+        data = d3.nest()
+            .key(function (d) {
+                return d.properties.vehicle_type_code;
+            })
+            .rollup(function (v) {
+                return v.length;
+            })
+            .entries(filtered_data);
+
+        console.log(JSON.stringify(data));
+
+        var w = 400;
+        var h = 400;
+        var margin = {
+            top: 50,
+            bottom: 100,
+            left: 50,
+            right: 20
+        };
+        var width = w - margin.left - margin.right;
+        var height = h - margin.top - margin.bottom;
+
+        //var tooltip = d3.select("body").append("div").attr("class", "toolTip");
+        var tooltip = d3.select("#chart-2").append("div").attr("class", "toolTip");
+
+        var x = d3.scaleBand()
+            .domain(data.map(function (d) {
+                return d.key;
+            }))
+            .range([margin.left, width])
+            .padding(0.1);
+
+        var y = d3.scaleLinear()
+            .domain([0, d3.max(data, function (d) {
+                return d.value;
+            })])
+            .range([height, margin.top])
+
+        var yAxis = d3.axisLeft().scale(y)
+
+        d3.select("#vehchart").remove();
+
+        //var svg = d3.select("body").append("svg")
+        var svg = d3.select("#chart-2").append("svg")
+            .attr("id", "vehchart")
+            .attr("width", w)
+            .attr("height", h);
+        svg.append("g")
+            .attr("class", "axis")
+            .attr("transform", "translate(" + margin.left + ",0)")
+            .call(yAxis);
+        data.sort(function (a, b) {
+            return d3.descending(a.value, b.value)
+        })
+        x.domain(data.map(function (d) {
+            return d.key;
+        }));
+        svg.selectAll(".bar")
+            .transition()
+            .duration(500)
+            .attr("x", function (d, i) {
+                return x(d.key);
+            })
+
+        svg.selectAll(".val-label")
+            .transition()
+            .duration(500)
+            .attr("x", function (d, i) {
+                return x(d.key) + x.bandwidth() / 2;
+            })
+
+        svg.selectAll(".bar-label")
+            .transition()
+            .duration(500)
+            .attr("transform", function (d, i) {
+                return "translate(" + (x(d.key) + x.bandwidth() / 2 - 8) + "," + (height + 15) + ")" + " rotate(45)"
+            })
+
+
+        // append the rectangles for the bar chart
+        svg.selectAll("rect")
+            .data(data)
+            .enter()
+            .append("rect")
+            .attr("class", "bar")
+            .attr("x", function (d, i) {
+                return x(d.key);
+            })
+            .attr("width", x.bandwidth())
+            .attr("y", height)
+
+            .attr("y", function (d, i) {
+                return y(d.value);
+            })
+            .attr("height", function (d, i) {
+                return height - y(d.value);
+            })
+            .on("mousemove", function (d) {
+                tooltip
+                    .style("left", d3.event.pageX - 500 + "px")
+                    .style("top", d3.event.pageY - 300 + "px")
+                    .style("display", "inline-block")
+                    .html((d.key) + ": " + (d.value));
+            })
+            .on("mouseout", function (d) {
+                tooltip.style("display", "none");
+            });
+
+
+        // add the x Axis
+        svg.append("g")
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisBottom(x))
+            .selectAll('text')
+            .attr("transform", "rotate(-60)")
+            .attr("dx", "-.8em")
+            .attr("dy", ".25em")
+            .style("text-anchor", "end")
+            .style("font-size", "12px");
+
+
+    });
+}
+
+renderChart2();

@@ -68,7 +68,7 @@ p, select, .selectwrapper {
 .left, .right{
   text-align: center;
   width: 100%;
-  height: 75%;
+  height: 100%;
   padding-top: 10px;
   padding-bottom: 80px;
 }
@@ -78,7 +78,7 @@ p, select, .selectwrapper {
 }
 
 #chart-1, #chart-2 {
-  border: 1px solid #E4E0D8;
+  /*border: 1px solid #E4E0D8;*/
   height: 100%;
   margin: 2% 5%;
 }
@@ -133,3 +133,17 @@ select{
 .selectwrapper {
   border-radius: 20px;
 }
+
+.toolTip {
+  position: absolute;
+  color: #232b38;
+  display: none;
+  min-width: 80px;
+  height: auto;
+  background: none repeat scroll  0 0 #ffffff;
+  /*border: 1px solid #6F257F;*/
+  padding: 14px;
+  text-align: center;
+}
+
+.bar { fill: dodgerblue; }
